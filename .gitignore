@@ -1,0 +1,5 @@
+*.pdf
+_*.*
+files/
+builds/
+notes.mk
