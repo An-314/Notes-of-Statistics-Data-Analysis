@@ -22,6 +22,9 @@ BUILD_DIR := builds
 MAIN_SRC := main.typ
 MAIN_PDF := $(BUILD_DIR)/main.pdf
 
+MAIN_LAB_SRC := main-lab.typ
+MAIN_LAB_PDF := $(BUILD_DIR)/main-lab.pdf
+
 CHAPS := $(wildcard chap*.typ)
 
 PIC_SRC := $(wildcard pic/*.typ)
@@ -33,13 +36,17 @@ HW_PDF := $(patsubst HW/%.typ,$(BUILD_DIR)/HW/%.pdf,$(HW_SRC))
 
 .PHONY: all clean
 
-all: $(PIC_PDF) $(MAIN_PDF) $(SUMMARY_PDF) $(HW_PDF)
+all: $(PIC_PDF) $(MAIN_PDF) $(MAIN_LAB_PDF) $(HW_PDF)
 
 # 编译主文档
 $(MAIN_PDF): $(MAIN_SRC) $(CHAPS) $(PIC_PDF)
 	$(call MKDIR_P,$(dir $@))
 	typst compile $< $@
 
+# 编译主文档（实验）
+$(MAIN_LAB_PDF): $(MAIN_LAB_SRC) $(CHAPS) $(PIC_PDF)
+	$(call MKDIR_P,$(dir $@))
+	typst compile $< $@
 
 # 编译每个图片
 pic/builds/%.pdf: pic/%.typ

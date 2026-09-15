@@ -1,6 +1,5 @@
 #import "@preview/scripst:1.1.2": *
 
-
 #show: scripst.with(
   template: "book",
   title: [统计数据分析],
@@ -14,5 +13,4 @@
   lang: "zh",
 )
 
-#pagebreak()
 #include "chap1.typ"
