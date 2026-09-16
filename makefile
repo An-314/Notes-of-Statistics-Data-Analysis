@@ -34,9 +34,15 @@ PIC_PDF := $(patsubst pic/%.typ,pic/builds/%.pdf,$(PIC_SRC))
 HW_SRC := $(wildcard HW/*.typ)
 HW_PDF := $(patsubst HW/%.typ,$(BUILD_DIR)/HW/%.pdf,$(HW_SRC))
 
-.PHONY: all clean
+# LAB 部分：LAB/i/main.typ -> builds/LAB/LABi.pdf
+LAB_SRC := $(wildcard LAB/*/main.typ)
+LAB_PDF := $(patsubst LAB/%/main.typ,$(BUILD_DIR)/LAB/LAB%.pdf,$(LAB_SRC))
 
-all: $(PIC_PDF) $(MAIN_PDF) $(MAIN_LAB_PDF) $(HW_PDF)
+.PHONY: all lab clean
+
+all: $(PIC_PDF) $(MAIN_PDF) $(MAIN_LAB_PDF) $(HW_PDF) $(LAB_PDF)
+
+lab: $(LAB_PDF)
 
 # 编译主文档
 $(MAIN_PDF): $(MAIN_SRC) $(CHAPS) $(PIC_PDF)
@@ -57,6 +63,11 @@ pic/builds/%.pdf: pic/%.typ
 $(BUILD_DIR)/HW/%.pdf: HW/%.typ
 	$(call MKDIR_P,$(dir $@))
 	typst compile $< $@
+
+# 编译每次 LAB
+$(BUILD_DIR)/LAB/LAB%.pdf: LAB/%/main.typ
+	$(call MKDIR_P,$(dir $@))
+	typst compile --root . $< $@
 
 clean:
 	$(call RM_RF,$(BUILD_DIR))
