@@ -362,6 +362,351 @@ $
 
 == 随机变量的函数
 
+#example(subname: [数据分析中的问题])[
+  粒子物理与核物理实验中对动量的测量通常是分别测量
+  $
+    p_T = sqrt(p_x^2 + p_y^2), p_z
+  $
+  有分布
+  $
+    f(p_T, p_z)
+  $
+  在已知两分量测量值的概率密度函数情况下，总动量为
+  $
+    p = sqrt(p_T^2 + p_z^2)
+  $
+  如何导出总动量的测量值的概率密度函数
+  $
+    g(p)
+  $
+  是研究随机变量函数的p.d.f问题。
+]
+随机变量的函数自身也是一个随机变量。
+
+=== 一维随机变量的函数
+
+假设随机变量$x$服从概率密度$f(x)$，对于函数$a(x)$，其概率密度$g(a)$为何？
+
+如果$a(x)$是单调函数，则有
+$
+  g(a) dd(a) & = integral_(a in [a,a+dd(a)]) f(x') dd(x') \
+             & = integral_(x(a))^(x(a) + abs(dv(x, a)) dd(a)) f(x') dd(x') \
+             & = f(x(a)) abs(dv(x, a)) dd(a) \
+$
+假如$a(x)$的逆并不是一个单值函数，而是一个多值函数，则$a -> a+ dd(a)$将包括多个$x$区间
+$
+  g(a) dd(a) & = sum_(i=1)^n integral_(x_i (a))^(x_i (a) + abs(dv(x, a)) dd(a)) f(x') dd(x') \
+             & = sum_(i=1)^n f(x_i (a)) abs(dv(x, a)) dd(a) \
+$
+
+#example(subname: [])[
+  例如$a = x^2, x = plus.minus sqrt(a)$
+  $
+    dd(x) = plus.minus dd(a)/(2 sqrt(a))\
+  $
+  故
+  $
+    g(a) dd(a) & = integral_(sqrt(a))^(sqrt(a) + dd(x)) f(x') dd(x') + integral_(-sqrt(a))^(-sqrt(a) + dd(x)) f(x') dd(x') \
+               & = f(sqrt(a)) dd(a)/(2 sqrt(a)) + f(-sqrt(a)) dd(a)/(2 sqrt(a)) \
+               & = (f(sqrt(a)) + f(-sqrt(a))) dd(a)/(2 sqrt(a)) \
+  $
+]
+
+=== 多维随机变量的函数
+
+考虑多维随机变量$vb(x) = (x_1,x_2,...,x_n)$，其联合概率密度函数为$f(vb(x))$。对于函数$a(vb(x))$，其联合概率密度函数为$g(a)$
+$
+  g(a) dd(a) = integral_(dd(S)) f(vb(x)) dd(vb(x))
+$
+其中$dd(S)$是在$a(vb(x)) -> a + dd(a)$时，$vb(x)$在空间中的一个微小区域
+$
+  dd(S) = {vb(x) : a(vb(x)) in [a, a + dd(a)]}
+$
+
+#example()[
+  如果两个随机变量$x,y>0$，服从联合概率密度 $f(x,y)$，考虑函数$z = x y$，其概率密度函数$g(z)$是什么形式？
+
+  给定$x$，当$z in (z, z + dd(z))$，$y in (z/x, z/x + dd(z)/x)$，则有
+  $
+    g(z) dd(z) & = integral_(dd(S)) f(x,y) dd(x) dd(y) \
+               & = integral_(0)^(oo) dd(x) integral_(z/x)^(z/x + dd(z)/x) f(x, y) dd(y) \
+               & = integral_(0)^(oo) dd(x) (f(x, z/x) dd(z)/x) \
+               & = ( integral_(0)^(oo) f(x, z/x) dd(x)/ x) dd(z) \
+  $
+  从而
+  $
+    g(z) & = integral_(0)^(oo) f(x, z/x) dd(x)/ x \
+    g(z) & = integral_(0)^(oo) f(z/y, y) dd(y)/ y \
+  $
+]
+
+#example()[
+  如果两个随机变量$x,y>0$，服从联合概率密度 $f(x,y)$，考虑函数$z = x + y$，其概率密度函数$g(z)$是什么形式？
+
+  给定$x$，当$z in (z, z + dd(z))$，$y in (z - x, z - x + dd(z))$，则有
+  $
+    g(z) dd(z) & = integral_(dd(S)) f(x,y) dd(x) dd(y) \
+               & = integral_(0)^(oo) dd(x) integral_(z - x)^(z - x + dd(z)) f(x, y) dd(y) \
+               & = integral_(0)^(oo) dd(x) (f(x, z - x) dd(z)) \
+               & = ( integral_(0)^(oo) f(x, z - x) dd(x)) dd(z) \
+  $
+  从而
+  $
+    g(z) & = integral_(0)^(oo) f(x, z - x) dd(x) \
+    g(z) & = integral_(0)^(oo) f(z - y, y) dd(y) \
+  $
+]
+
+=== Mellin卷积与Fourier卷积
+
+上面的分析给出：假设随机变量$x, y$相互独立，分别服从概率密度函数$g(x)$和$h(y)$分布。
+
+$z = x y$的概率密度函数为
+$
+  g(z) & = integral_(-oo)^(oo) g(x) h(z/x) dd(x)/abs(x) \
+  g(z) & = integral_(-oo)^(oo) g(z/y) h(y) dd(y)/abs(y) \
+$
+这是Mellin卷积。
+
+$z = x + y$的概率密度函数为
+$
+  g(z) & = integral_(-oo)^(oo) g(x) h(z - x) dd(x) \
+  g(z) & = integral_(-oo)^(oo) g(z - y) h(y) dd(y) \
+$
+这是Fourier卷积。
+
+=== 多维随机变量的函数与Jacobian
+
+考虑随机矢量$vb(x) = (x_1,x_2,...,x_n)$，其联合概率密度函数为$f(vb(x))$。对于函数$vb(a) = (a_1(vb(x)), a_2(vb(x)),..., a_n(vb(x)))$，且其逆$vb(x) = (x_1(vb(a)), x_2(vb(a)),..., x_n(vb(a)))$存在，其联合概率密度函数为$g(vb(a))$
+$
+  g(vb(a)) dd(vb(a)) = det jacobianmatrix(vb(x); vb(a), delim: "|") f(vb(x)) dd(vb(x))
+$
+其中Jacobian矩阵为
+$
+  jacobianmatrix(vb(x); vb(a), delim: "|") = jacobianmatrix(x_1, x_2, ..., x_n; a_1, a_2, ..., a_n, delim: "|")
+$
+
+对联合概率密度$g(vb(a))$积分掉其他不关心的变量，可以得到任意一个边缘概率密度 $g_i(a_i)$。这是数据分析中误差传递的基础。
+
 == 期待值、方差
 
+=== 期待值、方差、标准差
+
+#definition(subname: [期望])[
+  考虑概率密度为$f(x)$的随机变量$x$，定义*期待(平均)值*为
+  $
+    E[x] = mu = integral x f(x) dd(x)\
+  $
+  对离散型变量，有
+  $
+    E[x] = mu = sum_(i = 1)^n x_i P(x_i)\
+  $
+]
+对概率密度为$g(y)$的函数$y(x)$，有
+$
+  E[y] = integral y g(y) dd(y) = integral y(x) f(x) dd(x)\
+$
+其中
+$
+  g(y) dd(y) = f(x) dd(x)\
+$
+
+#definition(subname: [方差])[
+  考虑概率密度为$f(x)$的随机变量$x$，定义*方差*为
+  $
+    "Var"[x] = sigma^2 = E[(x - E[x])^2] = integral (x - mu)^2 f(x) dd(x)\
+  $
+  对离散型变量，有
+  $
+    "Var"[x] = sigma^2 = E[(x - E[x])^2] = sum_(i = 1)^n (x_i - mu)^2 P(x_i)\
+  $
+  定义*标准差*为
+  $
+    sigma = sqrt("Var"[x])\
+  $
+]
+
+=== 协方差与相关系数
+
+#definition(subname: [协方差与相关系数])[
+  考虑概率密度为$f(x,y)$的随机变量$x,y$，定义*协方差*为
+  $
+    "cov"[x, y] & = E[(x - E[x])(y - E[y])] = E[x y] - E[x]E[y] \
+                & = integral (x - mu_x)(y - mu_y) f(x, y) dd(x) dd(y) \
+  $
+  定义*相关系数*为
+  $
+    rho_(x y) = "cov"[x, y] / (sigma_x sigma_y)\
+  $
+  无量纲。
+]
+如果$x,y$相互独立，即
+$
+  f(x, y) = f_x (x) f_y (y)\
+  E[x y] = integral x y f_x (x) f_y (y) dd(x) dd(y) = E[x] E[y]\
+  "cov"[x, y] = 0 , rho_(x y) = 0\
+$
+即$x,y$不相关。
+
+#note[
+  - $E[x]$是不是$x$的函数？
+
+    并非，$E[x]$是$f(x)$的泛函。
+
+  - $x,y$的相关系数$rho_x,y =0$，则$x,y$是否独立？
+
+    并非，$rho_x,y =0$仅说明$x,y$线性不相关
+    $
+      Y = X^2 ==> rho_(X,Y) = 0
+    $
+]
+
+#example(subname: [样本均值])[
+  假设实验研究某核素衰变寿命，探测效率$100%$，共测量了$n$次，每次探测结果为$t_i$。求平均寿命(即寿命的期待值)。
+
+  概率密度$P(t_i)$，根据相对频率的概率诠释
+  $
+    P(t_i) = 1/n
+  $
+  因此，平均寿命（或期待值）为
+  $
+    E[t] = mu = sum_(i=1)^n t_i P(t_i) = 1/n sum_(i=1)^n t_i\
+  $
+]
+
 == 不确定度的传递
+
+=== 不确定度的传递
+
+$n$个随机变量$vb(x) = (x_1,x_2,...,x_n)$，其联合概率密度函数为$f(vb(x))$，其协方差矩阵$V_(i j) = "cov"[x_i, x_j]$（表征与$x_i$有关的测量不确定度）。我们希望计算$y$的不确定度。
+
+可以用求概率密度函数的方法，硬核计算法
+$
+  "Var"[y] = E[y^2] - E^2[y]
+$
+但现实中过程经常比较复杂。
+
+事实上在实际计算中，现实中通常只能根据测量得到$vb(x)$的估计，假设我们已知
+$
+  vb(mu) = E[vb(x)]
+$
+对$y(vb(x))$在$vb(mu)$处进行Taylor展开
+$
+  y(vb(x)) = y(vb(mu)) + sum_(i=1)^n evaluated(pdv(y, x_i))_(vb(x) = vb(mu)) (x_i - mu_i) + O((x_i - mu_i)^2)
+$
+为了得到$"Var"[y]$，我们需要计算$E[y - E[y]]^2$，由于
+$
+  E[x_i - mu_i] = 0
+$
+有
+$
+  E[y(vb(x))] = y(vb(mu)) + O((x_i - mu_i)^2)
+$
+而
+$
+  E[(y - E[y])^2] &= E[(sum_(i=1)^n evaluated(pdv(y, x_i))_(vb(x) = vb(mu)) (x_i - mu_i))(sum_(j=1)^n evaluated(pdv(y, x_j))_(vb(x) = vb(mu)) (x_j - mu_j))] + O((x_i - mu_i)^3) \
+  &= sum_(i=1)^n sum_(j=1)^n evaluated(pdv(y, x_i))_(vb(x) = vb(mu)) evaluated(pdv(y, x_j))_(vb(x) = vb(mu)) E[(x_i - mu_i)(x_j - mu_j)] + O((x_i - mu_i)^3) \
+  &= sum_(i=1)^n sum_(j=1)^n evaluated(pdv(y, x_i))_(vb(x) = vb(mu)) evaluated(pdv(y, x_j))_(vb(x) = vb(mu)) "cov"[x_i, x_j] + O((x_i - mu_i)^3) \
+$
+因此，$y(vb(x))$的方差为
+$
+  sigma_y^2 approx sum_(i,j=1)^n evaluated(pdv(y, x_i) pdv(y, x_j))_(vb(x) = vb(mu)) V_(i j)
+$
+这是*不确定度传递公式*，也称为*误差传递公式*。
+
+#theorem(subname: [不确定度传递公式])[
+  考虑$n$个随机变量$vb(x) = (x_1,x_2,...,x_n)$，其联合概率密度函数为$f(vb(x))$，其协方差矩阵$V_(i j) = "cov"[x_i, x_j]$。对于函数$y(vb(x))$，其方差为
+  $
+    sigma_y^2 approx sum_(i,j=1)^n evaluated(pdv(y, x_i) pdv(y, x_j))_(vb(x) = vb(mu)) V_(i j)\
+  $
+]
+#newpara()
+
+如果$x_i$不相关，即
+$
+  V_(i j) = sigma_i^2 delta_(i j)
+$
+则
+$
+  sigma_y^2 approx sum_(i=1)^n evaluated((pdv(y, x_i))^2)_(vb(x) = vb(mu)) sigma_i^2\
+$
+类似地，对于$m$组函数$vb(y)(vb(x)) = (y_1(vb(x)), y_2(vb(x)),..., y_m(vb(x)))$，其协方差矩阵$U_(i j) = "cov"[y_i, y_j]$，有
+$
+  U_(k l) approx sum_(i,j=1)^n evaluated(pdv(y_k, x_i) pdv(y_l, x_j))_(vb(x) = vb(mu)) V_(i j)\
+$
+或者，写成矩阵形式
+$
+  U approx J V J^TT\
+$
+其中
+$
+  J = jacobianmatrix(vb(y); vb(x))_(vb(x) = vb(mu)) , J_(k i) = (pdv(y_k, x_i))_(vb(x) = vb(mu))\
+$
+是Jacobian矩阵。
+
+不确定度传递公式告诉我们，如何用原始变量$x$的协方差表示一组函数$vb(y)(vb(x))$。其局限性是：
+- 只有当$vb(y)(vb(x))$为线性时才严格成立
+- 如果函数在与$sigma_i$差不多的范围内是非线性的，这个近似不再适用
+前面的推导并没有要求$x_i$的概率密度的严格形式。
+
+#example(subname: [不确定度传递的一些特例])[
+  $
+    y = x_1 + x_2
+  $
+  则有
+  $
+    sigma_y^2 = sigma_1^2 + sigma_2^2 + 2 "cov"[x_1, x_2]\
+  $
+  #newpara()
+  $
+    y = x_1 x_2
+  $
+  则有
+  $
+    sigma_y^2/y^2 = sigma_1^2/x_1^2 + sigma_2^2/x_2^2 + (2 "cov"[x_1, x_2])/(x_1 x_2)\
+  $
+  如果$x_i$不相关：
+  - 和的不确定度的平方等于不确定度的平方和
+  - 积的相对不确定度的平方等于相对不确定度的平方和
+  #example(count: false)[
+    考$y=x_1-x_2$，其中：$mu_1 = mu_2 = 10$， $sigma_1 = sigma_2 = 1$。
+    - 如果$rho = 0$，即$x_1,x_2$不相关，则有
+      $
+        sigma_y^2 = sigma_1^2 + sigma_2^2 = 2\
+      $
+    - 如果$rho = 1$，即$x_1,x_2$完全相关，则有
+      $
+        sigma_y^2 = sigma_1^2 + sigma_2^2 + 2 "cov"[x_1, -x_2] = 0\
+      $
+      即，对于 100% 相关的两个变量，其差的不确定度为零。
+
+      这种特征有时候是有益的：将共同的或难以估计的不确定度，通过适当的数学处理将它们消掉，达到减小不确定度的目的。
+  ]
+]
+
+=== 随机变量的正交变换
+
+实验上测量带电粒子动量通常是测量粒子在探测器中各点的击中坐标 $x,y$，然后拟合径迹。径迹往往用极坐标$(r, theta)$描述。一般来说，$(x, y)$的测量不相关。$r, theta$是否相关？
+
+两种坐标的变换关系：
+$
+  r^2 = x^2 + y^2, tan theta = y/x\
+$
+有
+$
+  V_(x y) = mat(sigma_x^2, 0; 0, sigma_y^2), U_(r theta) = mat(sigma_r^2, "cov"[r, theta]; "cov"[r, theta], sigma_theta^2)\
+$
+变换的Jacobian矩阵为
+$
+  J = jacobianmatrix((r, theta); (x, y)) = mat(pdv(r, x), pdv(r, y); pdv(theta, x), pdv(theta, y)) = mat(x/r, y/r; -y/r^2, x/r^2)\
+$
+由于
+$
+  U approx J V J^TT\
+$
+则有
+$
+  U_(r theta) approx mat(x/r, y/r; -y/r^2, x/r^2) mat(sigma_x^2, 0; 0, sigma_y^2) mat(x/r, -y/r^2; y/r, x/r^2) \
+  = 1/r^2 mat(x^2 sigma_x^2 + y^2 sigma_y^2, (-x y (sigma_x^2 - sigma_y^2))/r; (-x y (sigma_x^2 - sigma_y^2))/r, (y^2 sigma_x^2 + x^2 sigma_y^2)/r^2)\
+$
+除非处处满足$sigma_x = sigma_y$，否则$r, theta$有相关性。
