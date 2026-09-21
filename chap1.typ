@@ -393,10 +393,20 @@ $
              & = integral_(x(a))^(x(a) + abs(dv(x, a)) dd(a)) f(x') dd(x') \
              & = f(x(a)) abs(dv(x, a)) dd(a) \
 $
+事实上如果即$a$的累积分布为$G(a)$，$x$的累积分布为$F(x)$，则有
+$
+  G(a) = F(x(a))\
+  g(a) = dv(G(a), a) = dv(F(x(a)), a) = dv(F(x(a)), x(a)) dv(x(a), a) = f(x(a)) abs(dv(x, a))\
+$
+#newpara()
 假如$a(x)$的逆并不是一个单值函数，而是一个多值函数，则$a -> a+ dd(a)$将包括多个$x$区间
 $
   g(a) dd(a) & = sum_(i=1)^n integral_(x_i (a))^(x_i (a) + abs(dv(x, a)) dd(a)) f(x') dd(x') \
              & = sum_(i=1)^n f(x_i (a)) abs(dv(x, a)) dd(a) \
+$
+其中
+$
+  a(x_i) = a, i = 1,2,...,n\
 $
 
 #example(subname: [])[
@@ -421,6 +431,14 @@ $
 其中$dd(S)$是在$a(vb(x)) -> a + dd(a)$时，$vb(x)$在空间中的一个微小区域
 $
   dd(S) = {vb(x) : a(vb(x)) in [a, a + dd(a)]}
+$
+也通常写作
+$
+  g(a)= integral_(RR^n) f(vb(x)) delta(a - a(vb(x))) dd(vb(x))
+$
+它等价于
+$
+  g(a) = integral_(a(vb(x)) = a) f(vb(x))/norm(grad(a(vb(x)))) dd(Sigma)\
 $
 
 #example()[
