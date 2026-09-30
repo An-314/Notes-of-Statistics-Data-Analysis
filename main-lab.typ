@@ -16,3 +16,5 @@
 #include "chap1-lab.typ"
 
 #include "chap2-lab.typ"
+
+#include "chap3-lab.typ"
