@@ -1,0 +1,16 @@
+name = Muon
+mass = 105.660000 MeV
+charge = -1 e
+pT = 500.000000 MeV
+eta = 0.881374
+energy = 714.957366 MeV
+
+name = Electron
+mass = 0.511000 MeV
+charge = -1 e
+pT = 1000.000000 MeV
+eta = -0.881374
+energy = 1414.213655 MeV
+
+Muon isTight = true
+Electron hasConversionVeto = false
