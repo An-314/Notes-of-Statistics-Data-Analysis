@@ -1,0 +1,20 @@
+Exercise 3-1
+ROOT 6.40.04
+Base seed 20261014
+Exercise 3-2
+ROOT 6.40.04
+Base seed 20261014
+Exercise 3-3
+ROOT 6.40.04
+Base seed 20261014
+Exercise 3-4
+ROOT 6.40.04
+Base seed 20261014
+Exercise 3-5
+ROOT 6.40.04
+Base seed 20261014
+Exercise 3-6
+ROOT 6.40.04
+Base seed 20261014
+hx out-of-range count 633 / 10000
+hm out-of-range count 616 / 10000
