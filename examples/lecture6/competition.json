@@ -1,0 +1,15 @@
+{
+  "n": 1000000,
+  "seed": 42,
+  "lambda1": 2,
+  "lambda2": 5,
+  "lambda_total": 1.428571428571429,
+  "mean_r1": 1.99728016762849,
+  "mean_r2": 4.999035851147421,
+  "mean_min": 1.42744642318828,
+  "count_flag0": 714490,
+  "count_flag1": 285510,
+  "fraction_flag0": 0.71449,
+  "mean_step_given_flag0": 1.427652964307713,
+  "mean_step_given_flag1": 1.426929553150416
+}

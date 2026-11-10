@@ -1,0 +1,12 @@
+{
+  "competition_root_entries": 1000000,
+  "transport_root_entries": 200000,
+  "competition_min_mean_z": -0.7875037682040453,
+  "flag0_fraction_z": 0.4522057054039512,
+  "transport_total_mean_z": -1.9160402432154313,
+  "transport_nscatter_mean_z": -2.158933069828683,
+  "variance_weighting": "scattering step mean pools all realized scattering steps; one final annihilation step and one total length per particle",
+  "identity_total_equals_last_plus_scatter_sum": true,
+  "all_displacements_no_larger_than_path": true,
+  "root_version": "6.40.04"
+}

@@ -1,0 +1,21 @@
+Processing exercise.C...
+Info in <TCanvas::Print>: png file pic/single-track.png has been created
+Info in <TCanvas::Print>: pdf file output/single-track.pdf has been created
+Info in <TCanvas::Print>: png file pic/tracks-100.png has been created
+Info in <TCanvas::Print>: pdf file output/tracks-100.pdf has been created
+Info in <TCanvas::Print>: png file pic/path-lengths.png has been created
+Info in <TCanvas::Print>: pdf file output/path-lengths.pdf has been created
+Particles: 200000; scattering steps: 497144
+Total path: 4.978578 +/- 0.011188 m
+Scattering step: 1.428272 +/- 0.002026 m
+Final annihilation step: 1.428293 +/- 0.003202 m
+Mean number of scatterings: 2.485720
+Single track: event 1, 3 scattering points
+PASS: 200000 particles and 697144 candidate pairs read back.
+PASS: every minimum, winner, path sum and displacement is consistent.
+PASS: means/standard errors and all histogram bins agree with independent calculations.
+PASS: 100 stored TGraphs and the selected single track match saved coordinates and turns.
+total: mean=4.978578019, SE=0.011187893, pull=-1.915
+scatter: mean=1.428272184, SE=0.002026166, pull=-0.148
+last: mean=1.428293286, SE=0.003201814, pull=-0.087
+nscatter: mean=2.485720000, SE=0.006601098, pull=-2.163

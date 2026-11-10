@@ -1,0 +1,21 @@
+{
+  "root_version": "6.40.04",
+  "seed": 42,
+  "entries": 5000,
+  "mean_px": 0.0254517028613438,
+  "sample_std_px": 0.9884339854247898,
+  "mean_pz": 1.9560968640505803,
+  "selected_px_nonnegative": 2561,
+  "selection_efficiency": 0.5122,
+  "copytree_px_positive": 2561,
+  "rdf_runs_before_result": 0,
+  "rdf_runs_after_all_results": 1,
+  "manual_rdf_columns_agree": true,
+  "manual_rdf_histograms_identical": true,
+  "cpp_python_writers_agree_with_float_tolerance": true,
+  "chain_entries": 10000,
+  "makeclass_generated_compiled_and_looped": true,
+  "variable_array_vector_entries_checked": 100,
+  "friend_entries_checked": 5000,
+  "friend_max_abs_residual": 0.0
+}

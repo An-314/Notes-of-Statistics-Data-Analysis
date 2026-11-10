@@ -1,5 +1,8 @@
 #import "@preview/scripst:1.1.2": *
 
+// 抵消模板在长目录末尾的额外留白，避免生成空白目录页。
+#show outline: it => [#it#v(-15pt)]
+
 #show: scripst.with(
   template: "book",
   title: [粒子物理与核物理实验中的数据分析],
@@ -20,3 +23,9 @@
 #include "chap3-lab.typ"
 
 #include "chap4-lab.typ"
+
+#include "chap5-lab.typ"
+
+#include "chap6-lab.typ"
+
+#include "chap7-lab.typ"

@@ -1,0 +1,5 @@
+*.root
+*.pdf
+/competition.png
+/paths.png
+/path-lengths.png

@@ -1,0 +1,20 @@
+{
+  "root_version": "6.40.04",
+  "n": 200000, "seed": 42,
+  "lambda_scatter": 2, "lambda_annihilation": 5, "lambda_step": 1.4285714285714286,
+  "total": {"n": 200000, "mean": 4.9785780188426747, "sample_std": 5.0033777713256056, "se": 0.011187892813795453},
+  "scatter": {"n": 497144, "mean": 1.4282721837739998, "sample_std": 1.4286183486528834, "se": 0.0020261664626748379},
+  "last": {"n": 200000, "mean": 1.4282932861919564, "sample_std": 1.4318946075517716, "se": 0.0032018136791011451},
+  "nscatter": {"n": 200000, "mean": 2.4857200000000121, "sample_std": 2.9521008885365627, "se": 0.0066010982632052836},
+  "displacement": {"n": 200000, "mean": 4.7971092203227697, "sample_std": 4.6643209550194991, "se": 0.010429738724300339},
+  "raw_scatter": {"n": 697144, "mean": 2.0005002099321731, "sample_std": 2.0003565253437992, "se": 0.0023957757257660139},
+  "raw_annihilation": {"n": 697144, "mean": 4.9818912140281171, "sample_std": 4.9786549723258275, "se": 0.0059628074188487357},
+  "histograms": {
+    "total": {"underflow": 0, "overflow": 535, "bin_count": 120, "xmax": 30},
+    "scatter": {"underflow": 0, "overflow": 16, "bin_count": 120, "xmax": 15},
+    "last": {"underflow": 0, "overflow": 7, "bin_count": 120, "xmax": 15}
+  },
+  "single_event": 1, "single_points": 5, "single_nscatter": 3,
+  "single_total": 6.0903481415886489, "single_last": 0.71833493101653811, "single_x": 5.6882076415777441, "single_y": -1.969446954289201, "single_theta0": -0.33150631514389894,
+  "single_scatter_steps": [0.623966092048584, 1.032178365906562, 3.7158687526169647]
+}

@@ -1,0 +1,11 @@
+{
+  "n": 10000,
+  "same_pairs": true,
+  "statistics_tolerance": 1e-12,
+  "variance_identity_error": 0.0,
+  "correlation_z": -1.088144062152088,
+  "correlation_ci_low": -0.030476212965288452,
+  "correlation_ci_high": 0.008719286273979035,
+  "max_fit_pull": 2.396096910764776,
+  "root_version": "6.40.04"
+}

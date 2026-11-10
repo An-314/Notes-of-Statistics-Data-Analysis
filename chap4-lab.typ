@@ -3,7 +3,7 @@
 #pagebreak(weak: true)
 #show figure: set block(breakable: true)
 
-= ROOT数据分析入门（一）
+= ROOT数据分析入门
 
 // 来源：第1—3、18页。
 本章内容：
@@ -13,8 +13,11 @@
 - 随机数、随机种子与`gRandom`
 - 直方图、ROOT文件的写入和读取
 - 数学函数、参数设置与数据拟合
+- TTree列式存储、创建、读取、精简与多文件分析
+- RDataFrame声明式分析、惰性执行与隐式多线程
+- 变长数组、STL容器与友元树
 
-*学习目标*：能够把数据组织成图形或直方图，使用随机数生成模拟样本，定义模型函数并拟合数据，将分析对象与图像保存下来。
+*学习目标*：能够把数据组织成图形或直方图，使用随机数生成模拟样本，定义模型函数并拟合数据，将分析对象与图像保存下来，并能用TTree保留逐事例数据、使用RDataFrame建立筛选与统计流程。
 
 前面学习的类、继承和多态是理解ROOT接口的基础。普通C++项目可以直接使用`g++`或Makefile编译：
 ```bash
@@ -864,30 +867,29 @@ root [3] myfit();
   caption: [固定随机种子42生成2500个事例后的拟合示例。拟合前将参数初值设为$(40,2,1)$。],
 )
 
-#block(breakable: false)[
-  #note(subname: [补充：拟合状态与局部极小值])[
-    非线性拟合可能依赖初值。在ROOT 6.40.04中固定种子42，使用上述初值$(40,2,1)$时，返回状态虽然为0，却得到$chi^2 / "ndf" approx 449.27 / 97$，曲线与数据明显不符。这说明优化器的收敛状态并不保证找到了合适的最小值。
+#note(subname: [补充：拟合状态与局部极小值])[
+  非线性拟合可能依赖初值。在ROOT 6.40.04中固定种子42，使用上述初值$(40,2,1)$时，返回状态虽然为0，却得到$chi^2 / "ndf" approx 449.27 / 97$，曲线与数据明显不符。这说明优化器的收敛状态并不保证找到了合适的最小值。
 
-    对同一份直方图，把初值调整到$(20,2.5,1)$后重新拟合：
-    ```cpp
-    auto h = (TH1F*)gROOT->FindObject("h1");
-    auto f = (TF1*)gROOT->GetFunction("myfunc");
-    f->SetParameters(20, 2.5, 1);
-    TFitResultPtr result = h->Fit(f, "ES");
-    ```
-    此时$chi^2 / "ndf" approx 86.39 / 97$，参数约为$(22.89,2.534,0.901)$。实际分析中应从模型和数据选择有依据的初值，并比较多组初值的结果；模拟例子已知生成参数，可以用来检查方法。
-  ]
+  对同一份直方图，把初值调整到$(20,2.5,1)$后重新拟合：
+  ```cpp
+  auto h = (TH1F*)gROOT->FindObject("h1");
+  auto f = (TF1*)gROOT->GetFunction("myfunc");
+  f->SetParameters(20, 2.5, 1);
+  TFitResultPtr result = h->Fit(f, "ES");
+  ```
+  此时$chi^2 / "ndf" approx 86.39 / 97$，参数约为$(22.89,2.534,0.901)$。实际分析中应从模型和数据选择有依据的初值，并比较多组初值的结果；模拟例子已知生成参数，可以用来检查方法。
 ]
+
 
 #figure(image("pic/chap4-lab/myfit-refined.png", width: 80%), caption: [同一组2500个事例更换初值后的拟合结果。])
 
-#block(breakable: false)[
-  #note(subname: [补充：形状参数与归一化])[
-    生成随机数时，`FillRandom()`按函数的归一化形状抽样；拟合的对象则是每个bin内的计数。因此，即使形状相同，拟合振幅也不必等于生成函数的振幅2。
 
-    对等宽bin，期望计数近似为$N (Delta x f(x)) / (integral f(x) dif x)$。比较生成值与拟合值时，应先区分函数形状、概率密度和每bin期望计数。对较低计数，泊松似然拟合往往比简单的$chi^2$近似更合适，需要按实际问题选择拟合目标。
-  ]
+#note(subname: [补充：形状参数与归一化])[
+  生成随机数时，`FillRandom()`按函数的归一化形状抽样；拟合的对象则是每个bin内的计数。因此，即使形状相同，拟合振幅也不必等于生成函数的振幅2。
+
+  对等宽bin，期望计数近似为$N (Delta x f(x)) / (integral f(x) dif x)$。比较生成值与拟合值时，应先区分函数形状、概率密度和每bin期望计数。对较低计数，泊松似然拟合往往比简单的$chi^2$近似更合适，需要按实际问题选择拟合目标。
 ]
+
 
 === 练习：设置图形属性
 
@@ -918,7 +920,7 @@ g.Draw("APL");
 
 #figure(image("pic/chap4-lab/exercise.png", width: 70%), caption: [红色实心方形标记与橙色折线。])
 
-== 本章小结
+=== 对象、直方图与拟合小结
 
 // 来源：第39页；第40—51页的复习内容已合并到相应主题。
 + ROOT把数据处理、存储、图形与统计分析组织为可组合的C++类，并通过PyROOT提供Python接口。
@@ -926,3 +928,836 @@ g.Draw("APL");
 + 随机种子决定伪随机序列的可重复性，正式分析同样需要记录随机数配置。
 + `TFile`保存可重新分析的对象，画布的`SaveAs()`保存图像；两者作用不同。
 + `TF1`等类把表达式、参数和数值计算组织起来，`Fit()`用数据估计参数。拟合结果需要结合归一化、误差、状态和物理意义解释。
+
+== 从直方图到TTree
+
+=== 为什么需要保留逐事例数据
+
+// 来源：第1—3页。
+直方图适合描述分布，但一组独立的一维直方图不能保留各变量逐事例的配对关系。例如，已经分别填好$μ$子的横动量$p_T$和赝快度$eta$分布后，不能仅凭这两张图重新画出“$p_T>20 "GeV"$的$μ$子的$eta$分布”。选择条件作用于哪个$μ$子，这一信息已经丢失。
+
+二维直方图可以保留两个变量的分箱关联，但不能恢复原始数值，也不适合用高维细分箱代替逐事例存储。若每个维度有100个bin，三维就有$100^3=10^6$个bin，维度继续增加时，存储量迅速增长。实际一个事例往往有几十到几百个变量。
+
+`TTree`保存逐事例的变量与对应关系，解决数据“怎样存”；`RDataFrame`在这些数据上定义筛选、计算和统计流程，解决数据“怎样分析”。两者可以配合使用。保留逐事例数据后，才能从不同角度考察关联、改变选择条件，重新构造需要的分布。
+
+=== 列式存储与基本概念
+
+// 来源：第4、9页。
+行式组织以一个事例为单位保存各变量；列式组织把同一变量的多个事例放在一起。若只计算$p_T=sqrt(p_x^2+p_y^2)$，列式读取只需使用`px`、`py`，可以跳过`pz`、`m`等无关列。
+
+#figure(
+  grid(
+    columns: (1fr, 1fr),
+    gutter: 12pt,
+    [
+      #align(center)[*行式：以事例为单位*]
+      #table(
+        columns: (auto, 1fr, 1fr, 1fr, 1fr),
+        stroke: none,
+        inset: 3pt,
+        align: center,
+        table.hline(stroke: 0.5pt),
+        [事例], [$p_x$], [$p_y$], [$p_z$], [$m$],
+        table.hline(stroke: 0.5pt),
+        [$e_1$], [0.3], [1.1], [−2.0], [0.5],
+        [$e_2$], [−0.7], [0.2], [3.4], [0.5],
+        [$e_3$], [1.9], [−1.5], [0.8], [0.5],
+        table.hline(stroke: 0.5pt),
+      )
+    ],
+    [
+      #align(center)[*列式：以变量为单位*]
+      #table(
+        columns: (auto, 1fr),
+        stroke: none,
+        inset: 3pt,
+        table.hline(stroke: 0.5pt),
+        [$p_x$列], [0.3，−0.7，1.9，…],
+        [$p_y$列], [1.1，0.2，−1.5，…],
+        [$p_z$列], [−2.0，3.4，0.8，…],
+        [$m$列], [0.5，0.5，0.5，…],
+        table.hline(stroke: 0.5pt),
+      )
+    ],
+  ),
+  caption: [逐事例的行式组织与按变量的列式组织。计算横动量只需要读取相应的两列。],
+)
+
+同一列通常具有相同类型和相近的数值特征，有利于压缩；压到原体积的$1/3$至$1/5$是可能达到的量级，具体效果取决于数据、压缩算法及设置。
+// 分析速度也取决于实际读取了哪些分支，不能仅因使用`TTree`就认为所有列都会自动跳过。
+
+#figure(three-line-table[
+  | 术语 | 含义 | 直观类比 |
+  | --- | --- | --- |
+  | `TTree` | 一个包含许多事例的数据集 | 实验记录本 |
+  | Entry | 一个事例，对应一组同时记录的量 | 一次碰撞记录 |
+  | Branch | 可单独组织和读取的分支 | 记录本的一栏 |
+  | Leaf | 基本类型分支中的数据项 | 栏内的数值或数组 |
+])
+
+最简单的Branch只包含一个Leaf，但一个复合Branch也可以有多个Leaf，对象还可以进一步拆分为子Branch。例如：
+```text
+TTree "myData" (10000 entries)
+├── px        (Float_t)
+├── py        (Float_t)
+├── charge    (Int_t)
+├── nTracks   (Int_t)
+└── track_pt  (Float_t[nTracks])
+```
+这里`nTracks`与`track_pt`是并列分支；后者的数组长度引用前者的计数Leaf。分支中的事例编号保持对应关系，各分支可以分别存储、压缩与读取。
+
+=== 从定义到分析的流程
+
+// 来源：第5—6页。
++ 创建`TFile`和`TTree`。
++ 定义Branch、Leaf及其对应的内存地址。
++ 在事例循环中为每个变量赋值，每完成一个事例调用一次`Fill()`。
++ 用`Write()`将树保存到ROOT文件。
++ 重新打开文件，读取树，进行选择、计算、绘图与统计。
+
+`Fill()`记录的是调用时各地址中的当前值，并不会替程序生成事例。忘记更新某个变量，就会把上一个事例的旧值再次写入。
+
+== Tree
+
+=== 创建与填充TTree
+
+==== 构造函数、Branch与Leaf类型
+
+// 来源：第7—8页。
+常用接口为：
+```cpp
+TTree(const char* name, const char* title);
+TBranch* Branch(const char* name, void* address,
+                const char* leaflist);
+```
+树的`name`用于查找对象，`title`用于描述数据。`Branch()`依次指定分支名、数据所在地址和Leaf列表：
+```cpp
+Int_t RunID = 0;
+struct Point { Float_t x, y, z; } point{};
+auto t1 = new TTree("t1", "test tree");
+t1->Branch("RunID", &RunID, "RunID/I");
+t1->Branch("point", &point, "x/F:y/F:z/F");
+```
+`RunID/I`表示名为`RunID`的`Int_t`数据项；复合Leaf用冒号分隔。常用类型码需要与实际内存类型相符，且大小写有区别：
+
+#figure(three-line-table[
+  | Leaf类型码 | 对应类型 | 含义 |
+  | --- | --- | --- |
+  | `/C` | 以零结尾的字符数组 | C风格字符串 |
+  | `/I`、`/i` | `Int_t`、`UInt_t` | 有符号、无符号32位整数 |
+  | `/F` | `Float_t` | 32位浮点数 |
+  | `/D` | `Double_t` | 64位浮点数 |
+  | `/L`、`/l` | `Long64_t`、`ULong64_t` | 有符号、无符号64位整数 |
+  | `/O` | `Bool_t` | 布尔值 |
+])
+
+复合Leaf列表要求各字段的内存排列与声明相符，结构体可能含有对齐填充。上面的同类型`Point`较直接；混合类型时应格外注意布局与可移植性，简单变量通常分别建Branch更清楚。绑定地址所指的对象必须在填充期间保持有效。
+
+也可以保存对象，例如：
+```cpp
+TH1F* hpx = new TH1F("hpx", "px", 100, -3, 3);
+t1->Branch("hpx", "TH1F", &hpx, 128000, 0);
+```
+这里传入的是对象指针变量的地址`&hpx`，后面的参数控制缓冲区和拆分级别。ROOT不只支持继承`TObject`的类；一般类对象需要相应字典与I/O支持，STL容器也有相应接口。
+
+==== C++：产生一个简单的树
+
+// 来源：第10页；补全头文件、文件关闭与固定种子。
+下面保留5000个事例及`px`、`py`、`pz`、`random`、`i`五个分支。保存为`tree1w.C`：
+```cpp
+#include <TFile.h>
+#include <TTree.h>
+#include <TRandom.h>
+
+void tree1w() {
+    TFile file("tree1.root", "RECREATE");
+    TTree t1("t1", "test tree");
+    Float_t px, py, pz;
+    Double_t random;
+    Int_t i;
+    t1.Branch("px", &px, "px/F");
+    t1.Branch("py", &py, "py/F");
+    t1.Branch("pz", &pz, "pz/F");
+    t1.Branch("random", &random, "random/D");
+    t1.Branch("i", &i, "i/I");
+    gRandom->SetSeed(42);
+    for (i = 0; i < 5000; ++i) {
+        gRandom->Rannor(px, py);
+        pz = px*px + py*py;
+        random = gRandom->Rndm();
+        t1.Fill();
+    }
+    t1.Write();
+}
+```
+在宏所在目录运行：
+```sh
+root -l -b -q tree1w.C
+```
+也可以在ROOT交互环境中使用`.x tree1w.C`。`Rannor(px,py)`一次产生两个独立标准正态随机数，`Rndm()`产生单位区间内的均匀随机数。
+
+==== Python：用缓冲区绑定分支
+
+// 来源：第11—12页。
+PyROOT可以直接导入ROOT类，但Branch需要类型与大小明确、地址稳定的内存缓冲区。单个Python浮点数不能简单地替代这里的C++变量地址；可用`array`或类型合适的NumPy数组。保存为`tree1w.py`：
+```python
+from ROOT import gRandom, TFile, TTree
+from array import array
+
+f = TFile("tree1.root", "RECREATE")
+t1 = TTree("t1", "test tree")
+gRandom.SetSeed(42)
+px, py, pz = (array("f", [0]) for _ in range(3))
+random = array("d", [0])
+i = array("i", [0])
+t1.Branch("px", px, "px/F")
+t1.Branch("py", py, "py/F")
+t1.Branch("pz", pz, "pz/F")
+t1.Branch("random", random, "random/D")
+t1.Branch("i", i, "i/I")
+for j in range(5000):
+    gRandom.Rannor(px, py)
+    pz[0] = px[0]**2 + py[0]**2
+    random[0] = gRandom.Rndm()
+    i[0] = j
+    t1.Fill()
+t1.Write()
+f.Close()
+```
+运行`python3 tree1w.py`。`array("f",[0])`创建一个单精度浮点元素，`"d"`和`"i"`分别表示双精度浮点和整数；传入Branch的是缓冲区对象，更新其内容时则使用`[0]`。Python调用成员函数不用`->`，也不需要在每行末尾加分号。
+
+Python的中间运算精度与C++的`Float_t`表达式可能略有不同；这不改变示例的分布，但不应无条件要求两种写法生成的每个浮点末位都相同。
+
+==== 从ASCII文本导入数据
+
+// 来源：第13页。
+示波器导出的文本、表格软件另存的数值文件等，可以通过`TTree::ReadFile()`转成ROOT树。以下`basic.dat`每行是一个事例的$x,y,z$：
+```text
+-1.102279 -1.799389 4.452822
+ 1.867178 -0.596622 3.842313
+-0.524181  1.868521 3.766139
+-0.380611  0.969128 1.084074
+ 0.552454 -0.212309 0.350281
+-0.184954  1.187305 1.443902
+ 0.205643 -0.770148 0.635417
+ 1.079222 -0.327389 1.271904
+-0.274919 -1.721429 3.038899
+ 2.047779 -0.062677 4.197329
+```
+```cpp
+TFile file("ex44.root", "RECREATE");
+TTree tree("ntuple", "data from ascii file");
+Long64_t nlines = tree.ReadFile("basic.dat", "x:y:z");
+printf("found %lld points\n", nlines);
+tree.Write();
+```
+第一个参数是文本文件名，第二个参数给出分支描述；未写类型时默认是`Float_t`，也可以显式写成`"x/F:y/F:z/F"`。导入前仍需确认分隔方式、表头与列的含义，成功读入的行数应与预期一致。
+
+=== 读取TTree与表达式分析
+
+==== 查看树、分支与事例
+
+// 来源：第14—15页；第14页是流程提示。
+在命令行打开文件：
+```sh
+root -l tree1.root
+```
+进入ROOT后可以依次查看：
+```cpp
+.ls
+TTree* t1 = nullptr;
+_file0->GetObject("t1", t1);
+t1->Show(0);
+t1->GetEntries();
+t1->Scan();
+t1->Print();
+t1->Draw("px");
+```
+`.ls`列出文件中的对象；`Show(0)`显示第0个事例；`GetEntries()`返回事例总数；`Scan()`逐行列出数值；`Print()`显示树结构、分支类型、事例数和压缩等信息。`Scan("px:py:pz", "px>0", "", 10)`可以限制列、选择条件与检查条数，避免输出整棵大树。
+
+`_file0`是用ROOT命令行打开第一个文件后提供的指针；在独立宏中应自行创建`TFile`，并通过`GetObject()`等接口取得树。文件名与树名是不同层次的名称。
+
+==== Draw表达式速查
+
+// 来源：第16页。
+`Draw()`可以直接投影变量、计算表达式并加入选择条件：
+
+#figure(three-line-table[
+  | 用途 | 示例 |
+  | --- | --- |
+  | 一维分布 | `t1->Draw("px")` |
+  | 二维散点 | `t1->Draw("px:py")` |
+  | 表达式 | `t1->Draw("sqrt(px*px+py*py)")` |
+  | 指定直方图与分箱 | `t1->Draw("px>>h1(100,0,20)")` |
+  | 加入选择 | `t1->Draw("px", "px>0")` |
+  | 选择与绘图选项 | `t1->Draw("px:py", "pz>0", "colz")` |
+])
+
+*二维表达式的次序是`"y:x"`*：`Draw("px:py")`以`py`为横轴、`px`为纵轴，而`TH2::Fill(px,py)`以`px`为横轴、`py`为纵轴。比较两种方式的图时，要先核对坐标定义。
+
+`"px>>h1"`可把结果填入名为`h1`的直方图；附带`(100,0,20)`时指定100个bin及范围。`>>h1`默认重置内容，`>>+h1`可向已有直方图追加。正态样本包含负值，因此实际查看本例`px`时应按目的选择例如$[-3,3]$的范围，并留意上、下溢出。
+
+常见算术、数学函数与选择条件可写进字符串，由ROOT的树表达式机制`TTreeFormula`解析，不能把它等同于任意C++语句。选择字符串还可表示数值权重；使用加权统计时，应区分事例数、权重和与误差定义。
+
+==== C++：绑定地址并逐事例读取
+
+// 来源：第17页。
+复杂计算可用`SetBranchAddress()`指定变量地址，再通过`GetEntry()`逐个事例更新这些变量。核心过程为：
+```cpp
+TFile file("tree1.root");
+TTree* t1 = nullptr;
+file.GetObject("t1", t1);
+Float_t px, py, pz;
+t1->SetBranchAddress("px", &px);
+t1->SetBranchAddress("py", &py);
+t1->SetBranchAddress("pz", &pz);
+TH1F hpx("hpx", "px distribution;px;Entries", 100, -3, 3);
+TH2F hpxpy("hpxpy", "py vs px;px;py", 30, -3, 3, 30, -3, 3);
+const Long64_t nentries = t1->GetEntries();
+for (Long64_t entry = 0; entry < nentries; ++entry) {
+    t1->GetEntry(entry);
+    hpx.Fill(px);
+    hpxpy.Fill(px, py);
+}
+hpx.DrawCopy();
+t1->ResetBranchAddresses();
+```
+`GetEntry(entry)`之后，`px`、`py`、`pz`才是当前事例的数据。分支名与类型应匹配，绑定地址要在循环期间有效；大型数据集的事例编号用`Long64_t`，避免强制缩成32位整数。
+
+文件、树和直方图也有生命周期。文件关闭后不应继续使用它拥有的对象；`DrawCopy()`可以把图形副本交给画布。更完整的可运行宏`examples/lecture5/tree1r.C`还检查树是否存在，并保存结果图。
+
+==== Python：直接遍历TTree
+
+// 来源：第18页。
+PyROOT提供逐Entry迭代，不必手动为每个读取变量设置地址：
+```python
+import ROOT
+f = ROOT.TFile.Open("tree1.root")
+t1 = f.Get("t1")
+hpx = ROOT.TH1F("hpx", "px distribution", 100, -3, 3)
+hpxpy = ROOT.TH2F("hpxpy", "py vs px", 30, -3, 3, 30, -3, 3)
+for event in t1:
+    hpx.Fill(event.px)
+    hpxpy.Fill(event.px, event.py)
+hpx.DrawCopy()
+f.Close()
+```
+直接迭代的写法简短，但每个事例都经过Python层，事例数较大时可能有明显开销。一次示例中C++循环约0.63 s、Python循环约50.85 s；这个计时只反映当时的数据量、环境和运行方式，不能当作固定速度比。比较性能时应统一输入和读取列，说明是否计入启动、编译、I/O与绘图时间。
+
+用Python调用`RDataFrame`时，字符串表达式及主要事例循环可在C++侧执行，因此不能用上述逐事例Python循环的计时推断所有PyROOT分析都慢。
+
+#figure(
+  image("pic/chap4-lab/tree-distributions.png", width: 100%),
+  caption: [固定种子42产生的5000个事例：$p_x$的一维分布和$p_y$与$p_x$的二维关联。两张图使用同一棵树，横纵坐标次序已明确标出。],
+)
+
+=== 精简TTree：选择列与选择事例
+
+// 来源：第19—22页；第19页是流程提示。
+大型ROOT文件往往有很多分支。精简数据包含两个独立操作：减少保留的变量，以及用选择条件减少事例。
+
+==== CloneTree、CopyTree与分支状态
+
+常用接口的主要参数为：
+```cpp
+TTree* CloneTree(Long64_t nentries = -1, Option_t* option = "");
+TTree* CopyTree(const char* selection, Option_t* option = "",
+                Long64_t nentries = kMaxEntries,
+                Long64_t firstentry = 0);
+void SetBranchStatus(const char* bname, Bool_t status = 1,
+                     UInt_t* found = nullptr);
+```
++ `CloneTree(-1)`复制所有事例；`CloneTree(0)`只复制当前激活分支的结构，不复制事例，用于之后自行填充。
++ `CopyTree("px>0")`在复制时加入事例选择；`nentries`限制的是检查的输入事例数，并不保证输出恰好有这么多条。
++ `SetBranchStatus("*",0)`关闭所有分支；再用`SetBranchStatus("p*",1)`激活以`p`开头的分支，或用精确名称激活某一列。
+
+分支默认激活；`status=1`表示激活，`0`表示停用。精简前必须明确要读、要计算、要保存哪些变量。存在拆分子分支时，还需核对具体分支名和通配符是否覆盖所需内容。
+
+==== 只保留必要分支，并可加入cut
+
+下面关闭所有列，再激活`px`、`py`、`pz`和`i`，去掉`random`。先打开输出文件，使新树属于输出文件：
+```cpp
+void copytree() {
+    TFile oldfile("tree1.root");
+    TTree* oldtree = nullptr;
+    oldfile.GetObject("t1", oldtree);
+    oldtree->SetBranchStatus("*", 0);
+    for (auto name : {"p*", "i"})
+        oldtree->SetBranchStatus(name, 1);
+    TFile newfile("small.root", "RECREATE");
+    auto newtree = oldtree->CloneTree();
+    // 若还要筛选事例，改成：
+    // auto newtree = oldtree->CopyTree("px>0");
+    newtree->Print();
+    newfile.Write();
+}
+```
+`"p*"`在本例匹配三列，再加`"i"`，实际共保留四个Branch。`CloneTree()`这一行保留全部事例，只有换成`CopyTree("px>0")`才会同时进行cut。输入树与输出树的地址存在联系，复制和填充期间应保持输入树、文件与绑定变量有效。
+
+== 使用RDataFrame分析数据
+
+=== 从事件循环到声明式分析
+
+// 第五讲来源：第23—25页。
+传统的`TTree`分析需要设置变量地址、逐事例调用`GetEntry()`、执行选择并填充统计量。分析变量增多后，重复的读入与循环代码也会增多；分支名、变量类型和地址不匹配，或漏读某个事例，都可能使结果出错。手动并行还需要处理线程之间的数据共享。
+
+`RDataFrame`提供更高层的声明式分析接口。先说明需要哪些列、怎样筛选、怎样计算新量及产生什么结果，再由ROOT组织事件循环与数据读取。它可以处理`TTree`、CSV等数据源，C++和Python使用的主要接口相近。
+
+一个分析通常包含三个环节：
++ *指定数据源*：创建`RDataFrame`。
++ *描述变换*：用`Filter()`选择事例，用`Define()`添加计算得到的新列。
++ *产生结果*：填直方图、计数、计算统计量，或把处理后的列写入文件。
+
+例如，若输入树有`x`、`y`两列，选择$y>2$并画出$x$：
+```cpp
+ROOT::RDataFrame d("myTree", "file.root");
+auto h = d.Filter("y > 2").Histo1D("x");
+h->Draw();
+```
+`Filter()`和`Define()`返回分析图中的新节点，原来的节点仍可继续用于另一条分析路径。只调用`df.Define(...)`而不保存返回值，也不在其后继续链式操作，不会使原来的`df`自动多出新列。
+
+已定义好的C++函数也可以作为操作的参数。假设`IsGoodEvent`和`DoStuff`接收的参数分别对应列`A`、`B`、`C`，可以写成：
+```cpp
+ROOT::RDataFrame d("myTree", "file.root", {"A", "B", "C"});
+d.Filter(IsGoodEvent).Foreach(DoStuff);
+```
+最后一个参数提供默认列列表；也可以在相应操作中显式给出需要的列名。`Foreach()`用于逐事例执行用户操作，会立即触发事件循环。
+
+=== 用10个事例创建一个TTree
+
+// 第五讲来源：第26页。
+`RDataFrame`不仅能读取已有文件，也能从给定的事例数出发生成数据：
+```python
+import ROOT
+
+def fill_tree(tree_name, file_name):
+    d = ROOT.RDataFrame(10)
+    d.Define("b1", "static_cast<double>(rdfentry_)") \
+     .Define("b2", "static_cast<int>(rdfentry_ * rdfentry_)") \
+     .Snapshot(tree_name, file_name)
+
+file_name = "df001_introduction_py.root"
+tree_name = "myTree"
+fill_tree(tree_name, file_name)
+```
+`10`表示有10个entries，编号为0到9。`rdfentry_`是框架提供的当前entry编号；旧名称`tdfentry_`仍是兼容别名。这里得到$b_1=i$、$b_2=i^2$，两列分别保存为双精度数和整数。
+
+`Define()`的字符串表达式使用*C++语法*，即使外层脚本用Python编写也是如此。表达式经Cling即时编译，能够引用列名、数学函数和可见的C++函数；不能把所有`TTree::Draw()`专用语法不加转换地搬进来。
+
+`Snapshot(tree_name, file_name)`把结果写入ROOT文件；当前例子得到一个含`b1`、`b2`的树。`Define()`自身只描述计算过程，并不自动把新列写回输入文件。
+
+=== 惰性执行与共享事件循环
+
+// 第五讲来源：第27页。
+`Filter()`、`Define()`用于建立计算图。`Histo1D()`、`Count()`、`Mean()`等多数结果操作是*惰性动作*：调用时先登记任务，第一次访问结果时才运行事件循环。
+
+假设另一个数据集含有`MET`和`pt_v`两列：
+```cpp
+ROOT::RDataFrame d("treeName", "file.root");
+auto h1 = d.Filter("MET > 10.").Histo1D("pt_v");
+auto h2 = d.Histo1D("pt_v");
+h1->Draw();
+h2->Draw("SAME");
+```
+前两次`Histo1D()`登记直方图任务。访问`h1`时，同一计算图中已登记的两个任务一起执行；访问已经得到的`h2`不需要重跑事件循环。*要让多个结果共享一次循环，应先登记所有任务，再访问任意一个结果。* 不同数据源创建的独立计算图不会因此自动合并。
+
+C++中常用解引用或`->`访问结果；Python中可调用`GetValue()`取得具体数值。若先取出一个结果，再新建另一个动作，后者通常需要新的事件循环。`GetNRuns()`可用于检查已经运行的循环次数。
+
+#block(breakable: false)[
+  #note(subname: [补充：并非所有动作都是惰性的])[
+    `Snapshot()`默认立即运行并写文件，`Foreach()`也立即执行。需要把文件输出和其他结果合并到同一次循环时，可以先登记其他惰性动作，再调用`Snapshot()`；也可以把`ROOT::RDF::RSnapshotOptions`中的`fLazy`设为`true`，并保留`Snapshot()`返回的结果句柄，随后由结果访问触发执行。
+  ]
+]
+
+=== 开启隐式多线程
+
+// 第五讲来源：第27页。
+在创建`RDataFrame`之前开启隐式多线程，框架就可以把可并行的工作分配给多个线程：
+```cpp
+ROOT::EnableImplicitMT(4);
+ROOT::RDataFrame d("myTree", "file_*.root");
+auto myHisto = d.Histo1D("Branch_A");
+myHisto->Draw();
+```
+这里请求使用4个工作线程，不等于保证正好占用4个独立物理核，也不保证运行时间缩短为四分之一；实际速度受数据规模、I/O和每个事例的计算量影响。
+
+用户在`Define()`、`Filter()`、`Foreach()`中提供的函数仍需满足并发安全要求。简单的无副作用表达式通常容易满足；共享一个可变计数器或随机数发生器则需要额外处理，可以使用按slot分离的状态及`DefineSlot()`等接口。
+
+多线程处理不保证输出事例保持原始顺序，`Snapshot()`、`Take()`和`AsNumpy()`均不能据此默认逐行对齐。需要追踪事例时，应保留稳定的事例标识；不能把多线程输出的行号直接作为原树的友元匹配依据。
+
+=== 核心操作速查
+
+// 第五讲来源：第28页。
+下表使用Python调用形式；C++使用相应的命名空间、初始化列表和`->`访问结果。
+
+#figure(three-line-table[
+  | 方法 | 作用与典型调用 |
+  | --- | --- |
+  | `Define()` | `Define("pt", "sqrt(px*px+py*py)")`，定义新列 |
+  | `Filter()` | `Filter("pt > 0.5 && abs(eta) < 2.5")`，选择事例 |
+  | `Histo1D()` | `Histo1D(("h","",100,0,5), "pt")`，一维直方图 |
+  | `Histo2D()` | `Histo2D(model, "x", "y")`，二维直方图 |
+  | `Count()` | `Count().GetValue()`，得到通过选择的事例数 |
+  | `Mean()`、`Sum()` | `Mean("pt").GetValue()`等，求均值或总和 |
+  | `Snapshot()` | `Snapshot("t1", "output.root")`，写出处理后的列 |
+  | `Report()` | `Report().Print()`，打印已命名筛选的通过情况 |
+  | `AsNumpy()` | `AsNumpy(["px","py"])`，取得以列名为键的NumPy字典 |
+])
+
+`model`给出直方图的名称、标题、bin数和范围等设置；`Histo2D(model,"x","y")`的列参数顺序为横轴、纵轴。`eta`必须是已有或先前定义的列。`AsNumpy()`会把所选结果带入内存，仍需考虑数据规模。
+
+=== 从不同数据源创建RDataFrame
+
+// 第五讲来源：第29页。
+从一个文件中的树创建分析框架，可以直接指定树名和文件名，也可以使用已经打开的文件或树：
+```cpp
+TFile file("tree1.root", "READ");
+TTree* tree = nullptr;
+file.GetObject("t1", tree);
+
+ROOT::RDataFrame d1("t1", "tree1.root");
+ROOT::RDataFrame d2("t1", &file);
+ROOT::RDataFrame d3(*tree);
+```
+后两种方式使用外部对象时，应先确认文件打开成功、`tree`非空，并在结果计算结束前保持相关对象有效。
+
+多个文件可以用文件列表、通配符或`TChain`描述：
+```cpp
+ROOT::RDataFrame d4("t1", {"file1.root", "file2.root"});
+std::vector<std::string> files = {"file1.root", "file2.root"};
+ROOT::RDataFrame d5("t1", files);
+ROOT::RDataFrame d6("t1", "file*.root");
+
+TChain chain("t1");
+chain.Add("file1.root");
+chain.Add("file2.root");
+ROOT::RDataFrame d7(chain);
+```
+这些文件应包含名称及所需列结构相容的树。通配符只应匹配计划分析的文件，避免把同目录下刚生成的精简文件或其他样本再次读入。
+
+对于带表头的CSV文件，当前接口为：
+```cpp
+auto csv = ROOT::RDF::FromCSV("input.csv");
+```
+Python对应`ROOT.RDF.FromCSV("input.csv")`，C++使用时可包含`<ROOT/RCsvDS.hxx>`。旧接口名称为`MakeCsvDataFrame()`，ROOT 6.28起改名，6.30起已移除旧名称。
+
+=== Filter命名与筛选效率
+
+// 第五讲来源：第30页。
+读取前面生成的10个事例，为选择条件命名并打印报告：
+```python
+d = ROOT.RDataFrame("myTree", "df001_introduction_py.root")
+filtered1 = d.Filter("b1 > 25", "Cut1")
+all_cuts_report = d.Report()
+all_cuts_report.Print()
+```
+`"Cut1"`是筛选名称，便于识别报告中的每一级cut。这个最小数据集的`b1`只有0到9，因此该选择通过数为0；通过率取决于实际输入数据，不能把另一组样本的报告直接套用。
+
+报告通常给出`pass`、`all`、局部效率和累计效率。若某一级cut处理了25个事例、通过23个，则该级效率为$23/25=92%$；若原始样本共有50个事例，且这23个是整条筛选链最后留下的事例，累计效率为$23/50=46%$。两种分母对应不同问题。
+
+对根节点调用`Report()`可取得计算图中已登记的命名筛选信息；对某个筛选节点调用，则取得从根节点到该节点这一条分析路径上的命名筛选报告。Python使用`cut.Report().Print()`，C++使用`cut.Report()->Print()`，*两种语言都支持筛选报告*。
+
+=== 计数、最大值、最小值与均值
+
+// 第五讲来源：第31页。
+多个选择可以顺次应用。下面相当于对同时满足两个条件的事例计数：
+```python
+cutb1 = "b1 < 5."
+cutb1b2 = "b2 % 2 && b1 < 4."
+entries1 = d.Filter(cutb1).Filter(cutb1b2).Count()
+print("entries passed all filters:", entries1.GetValue())
+```
+`b2 % 2`是C++表达式，非零时作为真值，因此选出奇数`b2`。在$b_1=i$、$b_2=i^2$的10个事例中，通过的编号为1、3，事例数为2。
+
+对筛选后的列可以继续求统计量：
+```python
+selected = d.Filter(cutb1b2)
+min_val = selected.Min("b1")
+max_val = selected.Max("b1")
+mean_val = selected.Mean("b1")
+mean_b2 = selected.Mean("b2")
+print(min_val.GetValue(), max_val.GetValue())
+print(mean_val.GetValue(), mean_b2.GetValue())
+```
+这里结果依次为1、3、2、5。四个动作先登记，再访问结果，可共享一次事件循环；`Min()`等返回结果句柄，`GetValue()`取得数值。代码中的`entries1`和这四个动作若也都在首次访问前登记，可进一步共享同一计算图的一次循环。
+
+=== 增加新变量、筛选并只保存必要列
+
+// 第五讲来源：第32页。
+对`tree1.root`中的`t1`选择$p_x>=0$，定义
+$ p=sqrt(p_x^2+p_y^2+p_z^2), $
+并只写出`px`、`py`、`pz`、`i`及新列`p`：
+```python
+import ROOT
+
+df = ROOT.RDataFrame("t1", "tree1.root")
+cut = df.Filter("px >= 0", "px>=0")
+with_p = cut.Define("p", "sqrt(px*px + py*py + pz*pz)")
+count = cut.Count()
+report = cut.Report()
+with_p.Snapshot("t1", "newtree_rdf.root",
+                ["px", "py", "pz", "i", "p"])
+report.Print()
+print("done:", count.GetValue(), "entries")
+```
+这里先登记计数与报告，再由`Snapshot()`触发循环，输出、计数和报告一起得到。若在`Snapshot()`完成之后才新建`Count()`，计数通常还需要再运行一次循环。
+
+指定列名列表可以同时达到减少Branch和保留新变量的目的。输入文件保持不变，输出文件只包含筛选后的事例与指定列；默认输出模式为`RECREATE`，重复运行会覆盖同名输出文件，因此使用独立的输出文件名。
+
+前面构造的教学样本中，名为`pz`的列实际定义为`px*px+py*py`，并不是独立抽样的第三个动量分量。因此这里的`p`首先是演示列运算，不能把该样本误认为三维各向同性动量样本。
+
+=== 同一任务的TTree循环版本
+
+// 第五讲来源：第33页；补齐头文件与写文件步骤。
+同一筛选和新列计算也可以使用`CloneTree(0)`及显式事件循环完成：
+```cpp
+#include <TFile.h>
+#include <TTree.h>
+#include <cmath>
+
+void addvarreduce() {
+    TFile input("tree1.root", "READ");
+    TTree* t1 = nullptr;
+    input.GetObject("t1", t1);
+    Float_t px, py, pz, p;
+    t1->SetBranchStatus("*", 0);
+    t1->SetBranchStatus("p*", 1);
+    t1->SetBranchStatus("i", 1);
+    t1->SetBranchAddress("px", &px);
+    t1->SetBranchAddress("py", &py);
+    t1->SetBranchAddress("pz", &pz);
+
+    TFile output("newtree_loop.root", "RECREATE");
+    auto t2 = t1->CloneTree(0);
+    t2->Branch("p", &p, "p/F");
+    for (Long64_t entry = 0; entry < t1->GetEntries(); ++entry) {
+        t1->GetEntry(entry);
+        if (px < 0) continue;
+        p = std::sqrt(px*px + py*py + pz*pz);
+        t2->Fill();
+    }
+    t2->Write();
+}
+```
+`CloneTree(0)`只复制激活Branch的结构，不复制事例。克隆树与原树的Branch地址保持关联，所以读取原树一个entry后，`t2->Fill()`可把原有激活列连同新列`p`一起写出。`i`也会随克隆树复制，不必用循环变量冒充原始事例编号。
+
+两个实现表达相同的数据处理流程：先选择$p_x>=0$的事例，计算`p`，再保存所需列。比较结果时应检查通过数、列名和各事例的数值；多线程输出还应通过稳定的事例标识匹配，而不只比较行号。
+
+接口参考：#link("https://root.cern.ch/doc/master/classROOT_1_1RDataFrame.html")[RDataFrame参考与执行模型]、#link("https://root.cern.ch/doc/master/df001__introduction_8py.html")[RDataFrame基础示例]、#link("https://root.cern.ch/doc/v630/release-notes.html")[CSV接口名称变更]。
+
+== 用TChain连接多个文件
+
+// 第五讲来源：第34—36页；第34页为流程提示。
+实验数据常分散在许多ROOT文件中。若各文件中树的名称、所需分支结构和类型相容，可以用`TChain`把它们逻辑连接起来，像一棵大树一样分析：
+```cpp
+void exChain() {
+    TChain chain("t1");
+    chain.Add("Lec5/tree*.root");
+    chain.Draw("px");
+}
+```
+构造函数中的`"t1"`是树名，不是ROOT文件名。`Add()`支持文件通配符；链中总事例数是成功加入的各棵树的事例数之和。应检查匹配到的文件，避免把原始样本和它的复制文件重复计入。
+
+`TChain`只是建立统一的读取入口，并未自动生成一个合并后的物理文件。它可使用`GetEntries()`、`Draw()`等与`TTree`相似的接口，也可作为`RDataFrame`的数据源。
+
+若树保存在ROOT文件内部的`subdir`目录下，常用写法是：
+```cpp
+TChain chain("subdir/t1");
+chain.Add("rootfiles/*.root");
+```
+也可以在添加时明确树的内部路径：
+```cpp
+TChain chain;
+chain.Add("rootfiles/*.root/subdir/t1");
+// 单文件，不展开通配符：
+chain.AddFile("another.root", TTree::kMaxEntries, "subdir/t1");
+```
+`file.root/subdir/t1`是ROOT支持的兼容路径表示。系统目录`rootfiles`、ROOT文件内部的`TDirectory`和树对象`t1`属于不同层次，不能因为都写成路径就把它们看作同一种目录。`AddFile()`只添加指定文件，不能用`*`代替逐文件添加。
+
+== 自动生成TTree分析框架
+
+=== MakeClass与生成文件
+
+// 第五讲来源：第37页。
+树结构复杂时，手写全部Branch地址较繁琐。`MakeClass()`可以根据树结构生成类声明、变量、Branch绑定和分析循环骨架。
+
+例如打开含有树`T`的`htree.root`后，在ROOT中运行：
+```cpp
+auto input = TFile::Open("htree.root");
+input->ls();
+TTree* tree = nullptr;
+input->GetObject("T", tree);
+tree->MakeClass();
+// 或指定生成类名：
+tree->MakeClass("AnaFrame");
+```
+默认生成与树同名的`T.h`、`T.C`；指定`"AnaFrame"`则生成`AnaFrame.h`和`AnaFrame.C`。这一步解决读树的重复代码，具体物理分析仍需补进`Loop()`。
+
+=== 成员函数与Loop结构
+
+// 第五讲来源：第38页。
+生成类中的主要成员函数为：
+```cpp
+virtual Int_t    Cut(Long64_t entry);
+virtual Int_t    GetEntry(Long64_t entry);
+virtual Long64_t LoadTree(Long64_t entry);
+virtual void     Init(TTree* tree);
+virtual void     Loop();
+virtual Bool_t   Notify();
+virtual void     Show(Long64_t entry = -1);
+```
+`Init()`设置输入树及Branch地址；`LoadTree()`定位事例及当前文件；`Notify()`用于输入树或文件切换时的通知；`GetEntry()`读取数据；`Show()`检查一个事例；`Cut()`提供选择接口；`Loop()`组织分析。
+
+典型循环的结构为：
+```cpp
+Long64_t nbytes = 0, nb = 0;
+for (Long64_t jentry = 0; jentry < nentries; ++jentry) {
+    Long64_t ientry = LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = fChain->GetEntry(jentry);
+    nbytes += nb;
+    // if (Cut(ientry) < 0) continue;
+    // 在这里增加选择、计算与填图。
+}
+```
+对于`TChain`，`jentry`是整条链的全局编号，`LoadTree(jentry)`返回当前子树中的局部编号`ientry`。通过链本身调用`fChain->GetEntry()`仍使用全局编号；若直接读取当前子树或其Branch，才使用局部编号，不能混用。
+
+编辑好`AnaFrame.C`中的分析内容后，可以编译加载并运行：
+```cpp
+.L AnaFrame.C+
+AnaFrame analysis(tree);
+analysis.Loop();
+```
+`.L`加载文件，末尾的`+`使用ACLiC编译。对整条链分析时，应在`TChain`上生成与运行框架，使其能考察全部输入文件，而不只依照第一棵树的结构或数组容量。
+
+文件与生成对象的生命周期仍需留意。默认生成类的析构函数可能会删除当前输入文件，因此应检查生成代码的所有权约定，避免同时让另一个对象重复关闭或删除同一文件。
+
+== 数据存储与分析流程小结
+
+// 第五讲来源：第39页；第40页为空白分隔页。
++ `TTree`保留逐事例数据与变量间的对应关系；Branch的名称、类型和地址共同决定数据怎样读写。
++ `Fill()`保存一个事例，`Write()`保存树；读取时先取得entry，再使用被更新的变量。
++ 精简数据分别考虑“留下哪些列”和“留下哪些事例”。`CloneTree(0)`便于自行添加列与填充，`CopyTree()`可直接加入cut。
++ `RDataFrame`用数据源、变换和动作表达分析；预先登记多个惰性结果，可让它们共享一次事件循环。
++ `TChain`连接多文件，`MakeClass`生成读取骨架；它们并不代替对样本、类型和分析逻辑的核查。
+
+通过`Snapshot()`保存中间结果，可以把数据准备、选择与后续统计分析连起来。进一步的工具包括用于统计建模和推断的RooFit／RooStats，以及用于BDT、神经网络等多变量分析的TMVA。
+
+== 补充：数组、vector与友元树
+
+=== 不定长数组与固定长度数组
+
+// 第五讲来源：第41页。
+一个事例中的末态粒子数或重建径迹数可能不同，可用计数Leaf决定各事例实际保存的数组长度：
+```cpp
+const Int_t kMaxTrack = 50;
+Float_t px[kMaxTrack], py[kMaxTrack], pz[kMaxTrack];
+Double_t pv[3];
+Int_t ntrack;
+TFile file("tracks.root", "RECREATE");
+TTree t3("t3", "Reconst events");
+t3.Branch("ntrack", &ntrack, "ntrack/I");
+t3.Branch("px", px, "px[ntrack]/F");
+t3.Branch("py", py, "py[ntrack]/F");
+t3.Branch("pz", pz, "pz[ntrack]/F");
+t3.Branch("pv", pv, "pv[3]/D");
+```
+`pv[3]/D`每个事例保存3个双精度数；`px[ntrack]/F`则只保存当前`ntrack`个单精度数。作为数组长度的计数Leaf应使用`Int_t`，并先定义该计数Branch。
+
+每个事例中应先确定`ntrack`，检查$0<=n_("track")<=50$，再给`px`、`py`、`pz`的前`ntrack`个元素及`pv`赋值，最后调用`t3.Fill()`。数组上限50是程序分配的容量，并不意味着ROOT会替程序截断超出的数据。
+
+读取进固定数组时同样必须核对容量；可能超限的未知文件，不能等数组已经读入后才检查`ntrack`。可以先读计数并核查，再读取对应数组，或使用适合该数据结构的动态容器和读取接口。
+
+=== 把std::vector存入TTree
+
+// 第五讲来源：第42页。
+STL容器可以直接作为Branch对象。下面每个事例存放0到14个浮点数，共生成25000个事例：
+```cpp
+std::vector<float> vpx;
+TTree t("tvec", "Tree with vectors");
+t.Branch("vpx", &vpx);
+for (Int_t i = 0; i < 25000; ++i) {
+    Int_t npx = static_cast<Int_t>(gRandom->Rndm()*15);
+    vpx.clear();
+    for (Int_t j = 0; j < npx; ++j) {
+        Float_t px, py;
+        gRandom->Rannor(px, py);
+        vpx.push_back(px);
+    }
+    t.Fill();
+}
+t.Write();
+```
+使用时包含`<vector>`及相应ROOT头文件，并先创建输出`TFile`。每个事例开始必须`clear()`，否则当前事例会把上一个事例的数据一起保存。容器能随元素个数变化，避免自行固定每个事例的最大数组长度；Branch所绑定的`vpx`对象仍需在填充期间有效。
+
+=== AddFriend：访问另一棵树中的列
+
+// 第五讲来源：第43页。
+友元树（friend tree）可以把另一棵树中的变量引入当前分析，而不必把两棵树的所有Branch物理复制到一个文件中。
+
+#figure(
+  image("pic/chap4-lab/ttree-friends.png", width: 100%),
+  caption: [主树和友元树的变量访问关系，以及按entry逐行对应的示意。],
+)
+
+默认顺序对应模式下，主树的第$i$个事例与友元树的第$i$个事例对应。因此友元树至少应覆盖要分析的全部主树事例，*更关键的是顺序和事例身份一致*；条数相同并不能保证对应正确。若经过筛选或重排，应使用共同的事件标识与合适的索引匹配，不能依赖新文件的行号。
+
+=== 单独保存新变量，再连接分析
+
+// 第五讲来源：第44页。
+下面为主树的每个entry生成一个新高斯变量，保存为友元树；新变量只是演示补充列的访问方式：
+```cpp
+void tree1Addnew() {
+    TFile file("tree1.root");
+    TTree* t1 = nullptr;
+    file.GetObject("t1", t1);
+    const Long64_t nentries = t1->GetEntries();
+    TFile friendfile("tree1f.root", "RECREATE");
+    TTree t1f("t1f", "a friend Tree");
+    Float_t new_v;
+    t1f.Branch("new_v", &new_v, "new_v/F");
+    gRandom->SetSeed(43);
+    for (Long64_t i = 0; i < nentries; ++i) {
+        new_v = gRandom->Gaus(0, 1);
+        t1f.Fill();
+    }
+    t1f.Write();
+}
+```
+如果新变量要由原事例计算，循环中还须先调用`t1->GetEntry(i)`，再从相应的原变量求出新值。完成写入后，另一次分析可以这样连接并作图：
+```cpp
+TFile file("tree1.root");
+TTree* t1 = nullptr;
+file.GetObject("t1", t1);
+t1->AddFriend("t1f", "tree1f.root");
+t1->Draw("t1f.new_v:px", "t1f.new_v>0");
+```
+`"t1f.new_v"`中的前缀指明变量来自哪棵树，避免同名变量混淆。这里横轴是主树的`px`，纵轴是友元树的`new_v`，选择条件也可以使用友元变量。调用`AddFriend()`只建立访问关系，并不自动核查物理事例是否匹配。
+
+=== 配套示例与实际核对
+
+为本节准备的完整示例位于`examples/lecture5/`。在该目录运行`bash run.sh`，即可重新生成树和图，分别执行C++与Python读写，检查传统循环与`RDataFrame`，并验证`TChain`、`MakeClass`、数组与友元访问。
+
+#let tree-results = json("examples/lecture5/results.json")
+#let tree-f(value, digits: 6) = str(calc.round(value, digits: digits))
+#block(sticky: true)[固定种子42、5000个事例的实际统计为：]
+#figure(three-line-table[
+  | 统计量 | 理论期望 | 本次结果 |
+  | --- | --- | --- |
+  | $p_x$均值 | 0 | #tree-f(tree-results.mean_px) |
+  | $p_x$样本标准差 | 接近1 | #tree-f(tree-results.sample_std_px) |
+  | $p_z=p_x^2+p_y^2$均值 | 2 | #tree-f(tree-results.mean_pz) |
+  | $p_x>=0$通过数 | 约2500 | #tree-results.selected_px_nonnegative |
+  | $p_x>=0$通过率 | 约50% | #tree-f(tree-results.selection_efficiency * 100, digits: 2)% |
+])
+
+这些是有限样本的结果，不要求恰好等于总体参数。传统循环和`RDataFrame`得到的直方图逐bin一致；筛选后的五列及新变量也在浮点精度允许的范围内一致。RDataFrame计算图在访问结果前运行次数为0，所有已预订结果取得后运行次数为1。
+
+#figure(
+  image("pic/chap4-lab/rdf-comparison.png", width: 85%),
+  caption: [对同一输入使用传统循环与RDataFrame得到的直方图；逐bin内容相同，包括上、下溢出。],
+)
+
+配套验证中的两文件`TChain`得到10000个事例；友元示例使用`new_v=2*px`核查全部5000条逐事例对应关系。它与上面的独立高斯友元列是两个用途不同的示例。
+
+接口参考：#link("https://root.cern.ch/doc/master/classTTree.html")[TTree及I/O接口]、#link("https://root.cern.ch/doc/master/classTTreeFormula.html")[树表达式]、#link("https://root.cern.ch/doc/master/classTChain.html")[TChain与路径处理]。

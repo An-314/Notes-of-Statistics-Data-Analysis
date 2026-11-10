@@ -1,0 +1,12 @@
+{
+  "n": 200000,
+  "seed": 42,
+  "lambda_scatter": 2,
+  "lambda_annihilation": 5,
+  "mean_total_path": 4.978578018842725,
+  "mean_annihilation_step": 1.428293286191946,
+  "mean_scattering_step": 1.428272183773952,
+  "mean_number_scatterings": 2.48572,
+  "scattering_step_count": 497144,
+  "mean_displacement": 4.797109220322969
+}

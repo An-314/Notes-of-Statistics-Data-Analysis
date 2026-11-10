@@ -65,7 +65,10 @@ $(BUILD_DIR)/HW/%.pdf: HW/%.typ
 	typst compile $< $@
 
 # 编译每次 LAB
-$(BUILD_DIR)/LAB/LAB%.pdf: LAB/%/main.typ
+.SECONDEXPANSION:
+$(BUILD_DIR)/LAB/LAB%.pdf: LAB/%/main.typ $$(wildcard \
+  LAB/$$*/*.C LAB/$$*/*.h LAB/$$*/*.sh LAB/$$*/*.py LAB/$$*/*.txt \
+  LAB/$$*/output/*.json LAB/$$*/pic/*.png)
 	$(call MKDIR_P,$(dir $@))
 	typst compile --root . $< $@
 

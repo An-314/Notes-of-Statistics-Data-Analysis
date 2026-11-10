@@ -1,0 +1,135 @@
+{
+  "root_version": "6.40.04",
+  "particle_count": 200000,
+  "scattering_step_count": 497144,
+  "candidate_pair_count": 697144,
+  "track_graph_count": 100,
+  "single_event": 1,
+  "single_nscatter": 3,
+  "single_points": 5,
+  "max_path_identity_error": 2.1316282072803006e-14,
+  "max_track_coordinate_error": 0.0,
+  "pooled_path_identity_error": 0.0,
+  "candidate_competition_checked": true,
+  "all_statistics_match": true,
+  "all_histograms_match": true,
+  "all_track_graphs_match": true,
+  "all_scattering_angles_within_30_degrees": true,
+  "all_displacements_no_larger_than_paths": true,
+  "histograms": {
+    "total": {
+      "entries": 200000,
+      "bins": 120,
+      "underflow": 0,
+      "overflow": 535
+    },
+    "scatter": {
+      "entries": 497144,
+      "bins": 120,
+      "underflow": 0,
+      "overflow": 16
+    },
+    "last": {
+      "entries": 200000,
+      "bins": 120,
+      "underflow": 0,
+      "overflow": 7
+    },
+    "nscatter": {
+      "entries": 200000,
+      "bins": 50,
+      "underflow": 0,
+      "overflow": 0
+    }
+  },
+  "independent_statistics": {
+    "total": {
+      "n": 200000,
+      "mean": 4.978578018842675,
+      "sample_std": 5.003377771325636,
+      "se": 0.01118789281379552
+    },
+    "scatter": {
+      "n": 497144,
+      "mean": 1.4282721837740033,
+      "sample_std": 1.4286183486528663,
+      "se": 0.002026166462674814
+    },
+    "last": {
+      "n": 200000,
+      "mean": 1.4282932861919588,
+      "sample_std": 1.4318946075517733,
+      "se": 0.003201813679101149
+    },
+    "nscatter": {
+      "n": 200000,
+      "mean": 2.48572,
+      "sample_std": 2.9521008885365485,
+      "se": 0.006601098263205252
+    },
+    "displacement": {
+      "n": 200000,
+      "mean": 4.797109220322914,
+      "sample_std": 4.664320955019464,
+      "se": 0.010429738724300261
+    },
+    "raw_scatter": {
+      "n": 697144,
+      "mean": 2.0005002099321936,
+      "sample_std": 2.0003565253438005,
+      "se": 0.0023957757257660156
+    },
+    "raw_annihilation": {
+      "n": 697144,
+      "mean": 4.981891214028141,
+      "sample_std": 4.978654972325804,
+      "se": 0.005962807418848706
+    }
+  },
+  "theory": {
+    "total": {
+      "reference_mean": 5.0,
+      "sample_mean": 4.978578018842675,
+      "mean_standard_error": 0.01118789281379552,
+      "pull": -1.9147467279012873,
+      "ks_distance": 0.002897757459190964,
+      "dkw_bound_alpha_1e_minus6": 0.006022594486291647
+    },
+    "scatter": {
+      "reference_mean": 1.4285714285714286,
+      "sample_mean": 1.4282721837740033,
+      "mean_standard_error": 0.002026166462674814,
+      "pull": -0.14769013451650223,
+      "ks_distance": 0.0009285247218382559,
+      "dkw_bound_alpha_1e_minus6": 0.0038199485970535226
+    },
+    "last": {
+      "reference_mean": 1.4285714285714286,
+      "sample_mean": 1.4282932861919588,
+      "mean_standard_error": 0.003201813679101149,
+      "pull": -0.08687025771838591,
+      "ks_distance": 0.002002229113572618,
+      "dkw_bound_alpha_1e_minus6": 0.006022594486291647
+    },
+    "nscatter": {
+      "reference_mean": 2.5,
+      "sample_mean": 2.48572,
+      "mean_standard_error": 0.006601098263205252,
+      "pull": -2.1632763868396045
+    },
+    "raw_scatter": {
+      "reference_mean": 2.0,
+      "sample_mean": 2.0005002099321936,
+      "mean_standard_error": 0.0023957757257660156,
+      "pull": 0.20878829633923213,
+      "ks_distance": 0.0009625254648240045
+    },
+    "raw_annihilation": {
+      "reference_mean": 5.0,
+      "sample_mean": 4.981891214028141,
+      "mean_standard_error": 0.005962807418848706,
+      "pull": -3.036956369681879,
+      "ks_distance": 0.0016006991230434475
+    }
+  }
+}

@@ -1,0 +1,8 @@
+*.root
+*.png
+*.pcm
+*.so
+*.d
+AnaFrame.C
+AnaFrame.h
+__pycache__/

@@ -1,0 +1,28 @@
+Processing exercise1.C...
+N = 10000
+s(x) = 1.01739292
+s(x+y) = 1.42802766
+r(x,y) = -0.01088264
+Info in <TCanvas::Print>: png file pic/distributions.png has been created
+Info in <TCanvas::Print>: pdf file output/distributions.pdf has been created
+Processing exercise2.C...
+N = 9999.02 +/- 99.9935, pull = -0.00983263
+mu_x = 0.000670105 +/- 0.0101899, pull = 0.0657614
+sigma_x = 1.01729 +/- 0.00721784, pull = 2.3961
+mu_y = 0.0119515 +/- 0.0101389, pull = 1.17878
+sigma_y = 1.01218 +/- 0.00718169, pull = 1.69613
+rho = -0.0102227 +/- 0.0100318, pull = -1.01903
+Fit status = 0, covariance status = 3
+Info in <TCanvas::Print>: png file pic/fit2d.png has been created
+Info in <TCanvas::Print>: pdf file output/fit2d.pdf has been created
+Processing exercise3.C...
+N = 10000
+s(x) = 1.01739292
+s(x+y) = 1.42802766
+r(x,y) = -0.01088264
+RDF statistics event loops = 1
+PASS: 10000 stored pairs are identical in TTree and RDF outputs.
+PASS: all statistics agree with independent calculations to 1e-12.
+PASS: variance identity and persisted TF2/fit result are valid.
+PASS: fit status=0, covariance status=3; largest |pull|=2.396.
+Correlation 95% Fisher interval: [-0.030476, 0.008719]
