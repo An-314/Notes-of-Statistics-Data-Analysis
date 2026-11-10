@@ -2,7 +2,7 @@
 
 #show: scripst.with(
   title: [统计数据分析第4次实践作业],
-  author: "刘骥安",
+  author: "Anzreww",
   time: "2026年11月",
   cb-counter-depth: 1,
   matheq-depth: 1,

@@ -1,0 +1,5 @@
+Exercise 4-3
+ROOT 6.40.04
+Null: Poisson with fixed mean 3.9
+Right tail includes observed count 16.
+The equivalent chi-square probability is the LOWER tail.

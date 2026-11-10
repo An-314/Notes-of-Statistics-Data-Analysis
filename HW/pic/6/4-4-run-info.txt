@@ -1,0 +1,11 @@
+Exercise 4-4
+ROOT 6.40.04
+Input CSV: data/ex4_4.csv
+Bins 20
+Observed total 49
+Independent Poisson bin counts; total NOT fixed.
+No rescaling, fitted parameters, or discarded zero-count bins.
+Density range [0,120], bin width 0.5; normalization uses all toys.
+Tail counts include toys outside plotted range.
+theory1: seed=20261101, toys=2000000, tail=1304144, mean Q=20.004456556548892, expected mean=20, variance Q=71.317115597073013, exact variance=71.345087360548064, underflow=0, overflow=34
+theory2: seed=20261102, toys=2000000, tail=71580, mean Q=19.997231595112247, expected mean=20, variance Q=55.912446498323455, exact variance=55.9840918097497, underflow=0, overflow=5
