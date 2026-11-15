@@ -86,37 +86,40 @@ $
 一维直方图检查 $r_i$ 的均匀性，二维散点图检查 $(r_i,r_(i+1))$ 是否呈现明显结构。有限样本的区间计数本来就有统计涨落，不能要求每格完全相同。
 
 #figure(
-  image("pic/chap3/rng-uniform-correlation.png", width: 58%),
-  caption: [均匀性与相邻数相关性的初步检查，样本量为 $10^4$。],
+  image("pic/chap3/rng-uniform-correlation.png", width: 80%),
+  caption: [均匀性与相邻数相关性的初步检查，样本量为 $10^4$],
 )
 
 这些检查不能替代对不同滞后和高维相关性的检验。模拟应记录产生子、参数及种子以便复现；每次抽样时重新设置同一个种子会重复同一序列。
 
-== Monte Carlo积分与精度
+== Monte Carlo积分
 
 === 积分估计量及其误差
 
 // 来源：第3章，第12页。
 考虑 $I=integral_a^b f(x) dd(x)$。若原函数已知，可直接求 $I=F(b)-F(a)$；规则网格求积则以有限个代表点近似积分。MC用随机点代替固定网格，估计量本身也是随机变量。
 
-#block(breakable: false)[
-  令 $X_i$ 相互独立，均匀分布于 $[a,b]$，则*平均值法*给出
-  $
-    hat(I)=(b-a)/N sum_(i=1)^N f(X_i)
-  $
-]
-由 $E[f(X)]=I/(b-a)$ 及独立性可得
+
+令 $X_i$ 相互独立，均匀分布于 $[a,b]$，则*平均值法*给出
+$
+  hat(I)=(b-a)/N sum_(i=1)^N f(X_i)
+$
+这里 $X$ 在 $[a,b]$ 上均匀分布，因此它在任意等长小区间内取值的概率相同。均匀分布的概率密度为 $1/(b-a)$，所以 $f(X)$ 的期望，即 $f(X)$ 的概率加权平均值，是
+$
+  E[f(X)] = integral_a^b f(x) 1/(b-a) dd(x)
+$
+及独立性可得
 $
   E[hat(I)]=I, quad
   "Var"[hat(I)]=(b-a)^2/N "Var"[f(X)]
 $
-#block(breakable: false)[
-  因此它是无偏估计量。令 $overline(f)=1/N sum_(i=1)^N f(X_i)$，以样本方差估计未知的 $"Var"[f(X)]$，标准误差为
-  $
-    s_f^2=1/(N-1) sum_(i=1)^N (f(X_i)-overline(f))^2, quad
-    hat(sigma)_(hat(I))=(b-a) s_f/sqrt(N)
-  $
-]
+
+因此它是无偏估计量。令 $overline(f)=1/N sum_(i=1)^N f(X_i)$，以样本方差估计未知的 $"Var"[f(X)]$，标准误差为
+$
+  s_f^2=1/(N-1) sum_(i=1)^N (f(X_i)-overline(f))^2, quad
+  hat(sigma)_(hat(I))=(b-a) s_f/sqrt(N)
+$
+
 平均值法允许 $f$ 取正值或负值，但上述方差和误差估计要求相应的二阶矩有限。
 
 #block(breakable: false)[
